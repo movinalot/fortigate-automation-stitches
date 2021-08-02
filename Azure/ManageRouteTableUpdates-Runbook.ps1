@@ -1,17 +1,19 @@
 
 <#
     .DESCRIPTION
-        A runbook which receives a webhook from FortiGate Automaiton
+        A runbook which receives a webhook from FortiGate Automation
         Stitch to add/removed microsegmentation route in routetable.
     .NOTES
         AUTHOR: jmcdonough@fortinet.com
-        LASTEDIT: May 28, 2021
+        LASTEDIT: July 9, 2021
 #>
 
 param (
     [Parameter (Mandatory = $false)]
     [object] $WebhookData
 )
+
+Clear-AzContext -Force
 
 if ($WebhookData) {
 
@@ -27,35 +29,51 @@ if ($WebhookData) {
     $rtResourceGroupName = $WebhookData.RequestHeader.ResourceGroupName
     $rtRouteTableName = $WebhookData.RequestHeader.RouteTableName
     $rtNamePrefix = $WebhookData.RequestHeader.RouteNamePrefix
+    $rtNextHopIp = $WebhookData.RequestHeader.NextHopIp
 
-    write-output $rtAction,$rtAddr,$rtResourceGroupName,$rtRouteTableName,$rtNamePrefix
+    $retryLimit = 5
+
+    write-output $rtAction,$rtAddr,$rtResourceGroupName,$rtRouteTableName,$rtNamePrefix,$rtNextHopIp
 
     if ($rtAction.Equals('object-add')) {
 
-        Connect-AzAccount -Identity
-        
-        $rtNextHopIp = $(Get-AzResource -ResourceGroupName $rtResourceGroupName `
-                                        -ResourceType Microsoft.Network/routeTables | `
-                        Get-AzRouteTable -Name $rtRouteTableName | `
-                        Get-AzRouteConfig -Name toDefault).NextHopIpAddress
+        Connect-AzAccount -Identity -Force
 
-        Get-AzResource -ResourceGroupName $rtResourceGroupName `
-                        -ResourceType Microsoft.Network/routeTables | `
-            Get-AzRouteTable -Name $rtRouteTableName | `
-            Add-AzRouteConfig -Name "$rtNamePrefix-$rtAddr" `
-                            -AddressPrefix "$rtAddr/32" `
-                            -NextHopType VirtualAppliance `
-                            -NextHopIpAddress $rtNextHopIp | `
-            Set-AzRouteTable
+        $retry = 1
+        write-output "Add route: $rtNamePrefix-$rtAddr rg: $rtResourceGroupName rt: $rtRouteTableName nh: $rtNextHopIp"
+
+        # Add route if it does not exist. Try up to retryLimit times, occasionally the add will fail. 
+        while (-not (Get-AzRouteTable -ResourceGroupName $rtResourceGroupName -Name $rtRouteTableName | Get-AzRouteConfig -Name "$rtNamePrefix-$rtAddr" -ErrorAction SilentlyContinue)) {
+
+            write-output "  try - $retry"
+            Get-AzRouteTable -ResourceGroupName $rtResourceGroupName -Name $rtRouteTableName | `
+                Add-AzRouteConfig -Name "$rtNamePrefix-$rtAddr" `
+                    -AddressPrefix "$rtAddr/32" `
+                    -NextHopType VirtualAppliance `
+                    -NextHopIpAddress $rtNextHopIp | `
+                Set-AzRouteTable
+
+            if ($retry++ -ge $retryLimit) { break }
+        }
+    
     } elseif ($rtAction.Equals('object-remove')) {
 
-        Connect-AzAccount -Identity
+        Connect-AzAccount -Identity -Force
 
-        Get-AzResource -ResourceGroupName $rtResourceGroupName `
-                        -ResourceType Microsoft.Network/routeTables | `
-            Get-AzRouteTable -Name $rtRouteTableName | `
-            Remove-AzRouteConfig -Name "$rtNamePrefix-$rtAddr" | `
-            Set-AzRouteTable
+        $retry = 1
+        write-output "Remove route: $rtNamePrefix-$rtAddr rg: $rtResourceGroupName rt: $rtRouteTableName nh: $rtNextHopIp"
+
+
+        # Remove route if it does exist. Try up to retryLimit times, occasionally the remove will fail.
+        while ((Get-AzRouteTable -ResourceGroupName $rtResourceGroupName -Name $rtRouteTableName | Get-AzRouteConfig -Name "$rtNamePrefix-$rtAddr" -ErrorAction SilentlyContinue)) {
+        
+            write-output "  try - $retry"
+            Get-AzRouteTable -ResourceGroupName $rtResourceGroupName -Name $rtRouteTableName | `
+                Remove-AzRouteConfig -Name "$rtNamePrefix-$rtAddr" | `
+                Set-AzRouteTable
+            
+            if ($retry++ -ge $retryLimit) { break }
+        }
     } else {
         write-Error "Runbook action did not match object-add or object-remove."
     }
