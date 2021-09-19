@@ -125,7 +125,7 @@ When using the GUI the FortiGate presents `Filter` criteria based on items that 
     * Create Dynamic Address to match a [DbServer](FortiGate/address-DbServers.cfg)
         * Tag: __ComputeType__
         * Value: __DbServer__
-    * Create Dynamic Address to match a [WebServer](FortiGate/address-WebServers.cfg
+    * Create Dynamic Address to match a [WebServer](FortiGate/address-WebServers.cfg)
         * Tag: __ComputeType__
         * Value: __WebServer__
 
@@ -142,17 +142,17 @@ When using the GUI the FortiGate presents `Filter` criteria based on items that 
 The following actions are focused on the __WebServers__ Dynamic Address object, Trigger and Action that comprise an Automation Stitch.  The same actions would need to be taken to support the __DbServers__ Dynamic Address object.
 
     * Create [Trigger](FortiGate/routetableupdate-trigger-WebServers.cfg)
-        * Log Address Added
-        * Log Address Removed
+        * Log is created when an IP Address is Added to a Dynamic Address object
+        * Log is created when an IP Address is Removed from a Dynamic Address object
 
     Example Trigger CLI Configuration
-    ![WebServers Dynamic Address](images/routetable-update-trigger-cfg-cli.jpg)
+    ![Trigger CLI Configuration](images/routetable-update-trigger-cfg-cli.jpg)
 
     Example Trigger List GUI
-    ![WebServers Dynamic Address](images/routetable-update-trigger-lst-gui.jpg)
+    ![Trigger List GUI](images/routetable-update-trigger-lst-gui.jpg)
 
     Example Trigger GUI Configuration
-    ![WebServers Dynamic Address](images/routetable-update-trigger-cfg-gui.jpg)
+    ![Trigger GUI Configuration](images/routetable-update-trigger-cfg-gui.jpg)
 
     * Create [Action](FortiGate/routetableupdate-action.cfg)
         * Webhook - the URI of the Azure Automation Account Runbook
@@ -162,5 +162,15 @@ The following actions are focused on the __WebServers__ Dynamic Address object, 
             * Route Table Name - the target route table
             * Next Hop IP - the IP of the Next Hop, this is the active FortiGate
     * Create [Stitch](FortiGate/routetableupdate-stitch-WebServers.cfg)
-        * Trigger
-        * Action
+    The Automation Stitch brings together the Trigger and the Action.
+        * Trigger - Logs create for Dynamic Address Object
+        * Action - POST to an Azure WebHook data that can be used to update a target Route Table
+
+    Example Automation Stitch CLI Configuration
+    ![Automation Stitch CLI Configuration](images/routetable-update-stitch-cfg-cli.jpg)
+
+    Example Automation Stitch List GUI
+    ![Automation Stitch List GUI](images/routetable-update-stitch-lst-gui.jpg)
+
+    Example Automation Stitch GUI Configuration
+    ![Automation Stitch GUI Configuration](images/routetable-update-stitch-cfg-gui.jpg)
