@@ -145,14 +145,14 @@ The following actions are focused on the __WebServers__ Dynamic Address object, 
         * Log is created when an IP Address is Added to a Dynamic Address object
         * Log is created when an IP Address is Removed from a Dynamic Address object
 
-    Example Trigger CLI Configuration
-    ![Trigger CLI Configuration](images/routetable-update-trigger-cfg-cli.jpg)
+    Example Automation Stitch Trigger CLI Configuration
+    ![Automation Stitch Trigger CLI Configuration](images/routetable-update-trigger-cfg-cli.jpg)
 
-    Example Trigger List GUI
-    ![Trigger List GUI](images/routetable-update-trigger-lst-gui.jpg)
+    Example Automation Stitch Trigger List GUI
+    ![Automation Stitch Trigger List GUI](images/routetable-update-trigger-lst-gui.jpg)
 
-    Example Trigger GUI Configuration
-    ![Trigger GUI Configuration](images/routetable-update-trigger-cfg-gui.jpg)
+    Example Automation Stitch Trigger GUI Configuration
+    ![Automation Stitch Trigger GUI Configuration](images/routetable-update-trigger-cfg-gui.jpg)
 
     * Create [Action](FortiGate/routetableupdate-action.cfg)
         * Webhook - the URI of the Azure Automation Account Runbook
@@ -161,6 +161,16 @@ The following actions are focused on the __WebServers__ Dynamic Address object, 
             * Resource Group - the Azure Resource Group where the target route table is located
             * Route Table Name - the target route table
             * Next Hop IP - the IP of the Next Hop, this is the active FortiGate
+
+    Example Automation Stitch Action CLI Configuration
+    ![Automation Stitch ACtion CLI Configuration](images/routetable-update-action-cfg-cli.jpg)
+
+    Example Automation Stitch Action List GUI
+    ![Automation Stitch Action List GUI](images/routetable-update-action-lst-gui.jpg)
+
+    Example Automation Stitch Action GUI Configuration
+    ![Automation Stitch Action GUI Configuration](images/routetable-update-action-cfg-gui.jpg)
+
     * Create [Stitch](FortiGate/routetableupdate-stitch-WebServers.cfg)
     The Automation Stitch brings together the Trigger and the Action.
         * Trigger - Logs create for Dynamic Address Object
