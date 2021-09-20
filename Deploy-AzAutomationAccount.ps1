@@ -13,6 +13,7 @@
 
 New-AzResourceGroup -Name "automation-account" -Location eastus2
 New-AzAutomationAccount -ResourceGroupName "automation-account" -Location eastus2 -Name "user-automation-01" -AssignSystemIdentity -Plan Basic
+Start-Sleep -Seconds 30
 New-AzRoleAssignment -ObjectId (Get-AzAutomationAccount -ResourceGroupName "automation-account" -Name "user-automation-01").Identity.PrincipalId -RoleDefinitionName "Contributor" -Scope (Get-AzResourceGroup -Name "Production-EastUS2" -Location eastus2).ResourceId
 @("Accounts", "Automation","Compute","Network","Resources") | ForEach-Object {Import-AzAutomationModule -ResourceGroupName "automation-account" -AutomationAccountName "user-automation-01" -Name Az.$_  -ContentLinkUri https://www.powershellgallery.com/api/v2/package/Az.$_}
 New-AzAutomationRunbook -ResourceGroupName "automation-account" -AutomationAccountName "user-automation-01" -Name "ManageRouteTableUpdates" -Type PowerShell
