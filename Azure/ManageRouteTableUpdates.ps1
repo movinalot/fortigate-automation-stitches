@@ -5,7 +5,7 @@
         Stitch to add/removed microsegmentation route in routetable.
     .NOTES
         AUTHOR: jmcdonough@fortinet.com
-        LASTEDIT: July 9, 2021
+        LAST EDIT: July 9, 2021
 #>
 
 param (
