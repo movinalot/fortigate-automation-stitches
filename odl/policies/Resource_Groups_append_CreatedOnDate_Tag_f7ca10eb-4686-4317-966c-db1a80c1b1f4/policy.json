@@ -1,0 +1,42 @@
+{
+ "properties": {
+  "displayName": "Resource Groups append CreatedOnDate Tag",
+  "policyType": "Custom",
+  "mode": "All",
+  "description": "Resource Groups append CreatedOnDate Tag",
+  "metadata": {
+   "category": "Tags",
+   "createdBy": "3fba1c3d-7920-466b-8d27-a75d82117de2",
+   "createdOn": "2021-05-05T20:25:40.0539571Z",
+   "updatedBy": null,
+   "updatedOn": null
+  },
+  "parameters": {},
+  "policyRule": {
+   "if": {
+    "allOf": [
+     {
+      "field": "type",
+      "equals": "Microsoft.Resources/subscriptions/resourceGroups"
+     },
+     {
+      "field": "tags['CreatedOnDate']",
+      "exists": "false"
+     }
+    ]
+   },
+   "then": {
+    "effect": "append",
+    "details": [
+     {
+      "field": "tags['CreatedOnDate']",
+      "value": "[utcNow()]"
+     }
+    ]
+   }
+  }
+ },
+ "id": "/subscriptions/cf72478e-c3b0-4072-8f60-41d037c1d9e9/providers/Microsoft.Authorization/policyDefinitions/f7ca10eb-4686-4317-966c-db1a80c1b1f4",
+ "type": "Microsoft.Authorization/policyDefinitions",
+ "name": "f7ca10eb-4686-4317-966c-db1a80c1b1f4"
+}
