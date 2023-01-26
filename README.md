@@ -10,7 +10,7 @@ A FortiGate Automation Stitch brings together a Trigger and an Action. In this c
 This code covers the
 
 * Setup of an Azure Automation Account
-* Importing Azure PowerShell Modules into the Automation Account
+* ~~Importing Azure PowerShell Modules into the Automation Account~~ The Az. modules are now defaults in the automation account modules.
 * Creation, Import, and Publishing of an Azure Automation Account Runbook
 * Creation of an Azure Automation Account Webhook to invoke the Runbook
 * Creation of a FortiGate Dynamic Address
@@ -39,8 +39,6 @@ git clone and directory change
         * Create a new Resource Group
 
             ```PowerShell
-            # New-AzResourceGroup -Name "resource-group-name-of-the-automation-account" -Location azure-location
-
             New-AzResourceGroup -Name "automation-account" -Location eastus2
             ```
 
@@ -51,8 +49,6 @@ git clone and directory change
             * Choose the Basic Plan
 
             ```PowerShell
-            # New-AzAutomationAccount -ResourceGroupName "resource-group-name-of-the-automation-account" -Location azure-location -Name "user-automation-01" -AssignSystemIdentity -Plan Basic
-
             New-AzAutomationAccount -ResourceGroupName "automation-account" -Location eastus2 -Name "user-automation-01" -AssignSystemIdentity -Plan Basic
             ```
 
@@ -66,18 +62,16 @@ git clone and directory change
 
         * The Managed Identity allows the Automation Account to execute the PowerShell Runbook with the prescribed rights and scope. The prescribed rights and scope in this case will be __contributor__ and the Resource Group where the target Route Table is located.
 
-        * In this example the target Route Table is in Resource Group `Production-EastUS2`, which has already been created
+        * In this example the target Route Table is in Resource Group `Production-EastUS2`, which must already have been created
 
         ```PowerShell
-        # New-AzRoleAssignment -ObjectId (Get-AzAutomationAccount -ResourceGroupName "resource-group-name-of-the-automation-account" -Name "user-automation-01").Identity.PrincipalId -RoleDefinitionName "Contributor" -Scope (Get-AzResourceGroup -Name "resource-group-name-of-the-target-route-table" -Location azure-location).ResourceId
-
         New-AzRoleAssignment -ObjectId (Get-AzAutomationAccount -ResourceGroupName "automation-account" -Name "user-automation-01").Identity.PrincipalId -RoleDefinitionName "Contributor" -Scope (Get-AzResourceGroup -Name "Production-EastUS2" -Location eastus2).ResourceId
         ```
 
         Azure Assign Identity to Automation Account
         ![Azure Assign Identity to Automation Account](images/azure-assign-identity-automation-account.jpg)
 
-    * Import Az PowerShell Modules
+    * ~~Import Az PowerShell Modules~~ Does not need to be done, however it is a command worth understanding.
     Modules can be imported one at a time or utilizing a PowerShell Array, can be piped to a ForEach-Object installing all modules with a single command line
         * Az.Accounts
         * Az.Automation
@@ -86,9 +80,6 @@ git clone and directory change
         * Az.Resources
 
         ```PowerShell
-        # Import-AzAutomationModule -ResourceGroupName "resource-group-name-of-the-automation-account" -AutomationAccountName "user-automation-01" -Name Az.Accounts  -ContentLinkUri https://www.powershellgallery.com/api/v2/package/Az.Accounts
-        # @("Accounts", "Automation","Compute","Network","Resources") | ForEach-Object {Import-AzAutomationModule -ResourceGroupName "resource-group-name-of-the-automation-account" -AutomationAccountName "user-automation-01" -Name Az.$_  -ContentLinkUri https://www.powershellgallery.com/api/v2/package/Az.$_}
-
         @("Accounts", "Automation","Compute","Network","Resources") | ForEach-Object {Import-AzAutomationModule -ResourceGroupName "automation-account" -AutomationAccountName "user-automation-01" -Name Az.$_  -ContentLinkUri https://www.powershellgallery.com/api/v2/package/Az.$_}
         ```
 
@@ -107,15 +98,9 @@ git clone and directory change
       The name of the Runbook and the name of the PowerShell script that is being imported __do not have to match__. In this example they do match but that is not a requirement to importing code for a Runbook.
 
         ```PowerShell
-        # New-AzAutomationRunbook -ResourceGroupName "resource-group-name-of-the-automation-account" -AutomationAccountName "user-automation-01" -Name "name-of-runbook" -Type PowerShell
-
         New-AzAutomationRunbook -ResourceGroupName "automation-account" -AutomationAccountName "user-automation-01" -Name "ManageRouteTableUpdates" -Type PowerShell
-        
-        # Import-AzAutomationRunbook -Name "name-of-runbook" -ResourceGroupName "resource-group-name-of-the-automation-account" -AutomationAccountName "user-automation-01" -Path "path-to-powershell-script.ps1" -Type PowerShell –Force
 
         Import-AzAutomationRunbook -Name "ManageRouteTableUpdates" -ResourceGroupName "automation-account" -AutomationAccountName "user-automation-01" -Path "./Azure/ManageRouteTableUpdates.ps1" -Type PowerShell –Force
-        
-        # Publish-AzAutomationRunbook -ResourceGroupName "resource-group-name-of-the-automation-account" -AutomationAccountName "user-automation-01" -Name "name-of-runbook"
 
         Publish-AzAutomationRunbook -ResourceGroupName "automation-account" -AutomationAccountName "user-automation-01" -Name "ManageRouteTableUpdates"
         ```
@@ -136,8 +121,6 @@ git clone and directory change
       * The example command below uses `routetableupdate` as the Webhook name
 
         ```PowerShell
-        # New-AzAutomationWebhook -ResourceGroupName "resource-group-name-of-the-automation-account" -AutomationAccountName "user-automation-01" -RunbookName "name-of-runbook" -Name "webhook-name" -IsEnabled $True -ExpiryTime "09/12/2022" -Force
-
         New-AzAutomationWebhook -ResourceGroupName "automation-account" -AutomationAccountName "user-automation-01" -RunbookName "ManageRouteTableUpdates" -Name "routetableupdate" -IsEnabled $True -ExpiryTime "09/12/2022" -Force
         ```
 
@@ -155,8 +138,7 @@ git clone and directory change
         LastModifiedTime      : 9/20/2021 4:06:04 PM +00:00
         Parameters            : {}
         RunbookName           : ManageRouteTableUpdates
-        WebhookURI            : https://020446da-76a7-4092-8330-8c36bd437174.webhook.eus2.azure-automation.net/webhooks?token=1T1%2bZJ
-                                9cbJti948rF0%2b4E0C5RSNxht2q1DdaNmCU3zQ%3d
+        WebhookURI            : https://020446da-76a7-4092-8330-8c36bd437174.webhook.eus2.azure-automation.net/webhooks?token=1T1%2bZJ9cbJti948rF0%2b4E0C5RSNxht2q1DdaNmCU3zQ%3d
         HybridWorker          :
         ```
 
